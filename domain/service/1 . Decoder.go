@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -14,45 +15,46 @@ import (
 func ParsearTrama(client *redis.Client, trama string) error {
 	println(trama)
 	partes := strings.Split(trama, ",")
-	println(partes)
 
 	// 1 . Imei
 	imei := strings.TrimPrefix(partes[0], "imei:")
 
 	// 2 . Evento
 	evento, err := GetEvent(partes[1])
-	if evento == "" {
-		return fmt.Errorf("evento desconocido: %s", err)
+	if err != nil {
+		fmt.Printf("Error al obtener el evento: %v\n", err)
+		evento = ""
 	}
 
 	// 3 . Fecha Hora Evento
 	fechaHora, err := ParsearFechaHora(partes[2])
 	if err != nil {
-		return fmt.Errorf("error al parsear fecha y hora: %v", err)
+		fmt.Printf("Error al parsear fecha y hora: %v\n", err)
+		fechaHora = time.Time{} // Fecha y hora vacía
 	}
 
 	// 4 . Coordenadas (Latitud, Longitud)
-	latitud, longitud, err := ObtenerCoordenadas(partes)
-	if err != nil {
-		return fmt.Errorf("error al obtener las coordenadas: %v", err)
-	}
+	latitud, longitud := ObtenerCoordenadas(client, partes)
 
 	// 5 .Velocidad
 	velocidad, err := GetSpeed(partes[11])
 	if err != nil {
-		return fmt.Errorf("error al obtener la velocidad: %v", err)
+		fmt.Printf("Error al obtener la velocidad: %v\n", err)
+		velocidad = 0
 	}
 
 	// 6 . Obtener la información del vehículo
 	info, err := GetVehiclesInfo(imei)
 	if err != nil {
-		return fmt.Errorf("error al obtener la información del vehículo: %v", err)
+		fmt.Printf("Error al obtener la información del vehículo: %v\n", err)
+		info = views.VehicleInfo{} // Información del vehículo vacía
 	}
 
 	// 7 . Angulo
 	angulo, err := ObtenerAngulo(partes[12])
 	if err != nil {
-		return fmt.Errorf("error al obtener el ángulo: %v", err)
+		fmt.Printf("Error al obtener el ángulo: %v\n", err)
+		angulo = 0
 	}
 	// 8 . Validez
 	//validez := partes[10]

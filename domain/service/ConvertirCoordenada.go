@@ -1,32 +1,54 @@
 package service
 
 import (
+	"SimonBK_DecoderCo/db"
 	"fmt"
+	"log"
+	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-redis/redis/v8"
 )
 
-func ObtenerCoordenadas(partes []string) (float32, float32, error) {
+func ObtenerCoordenadas(client *redis.Client, partes []string) (float64, float64) {
+
 	if len(partes) < 11 {
-		return 0, 0, fmt.Errorf("no hay suficientes partes para obtener las coordenadas")
+		fmt.Println("No hay suficientes partes para obtener las coordenadas")
+		return 0, 0
+	}
+	re := regexp.MustCompile("[^0-9]+")
+	imei := re.ReplaceAllString(partes[0], "")
+
+	// Verificar si las partes de la latitud y longitud están vacías
+	if partes[7] == "" || partes[8] == "" || partes[9] == "" || partes[10] == "" {
+		fmt.Println("Datos de latitud o longitud faltantes")
+		latitud, longitud, err := ConsulLastLatLongInReddis(client, imei)
+		if err != nil {
+			fmt.Printf("Error al consultar el último registro en Redis: %v\n", err)
+			fmt.Println("Intentando consultar en la base de datos...")
+			latitud, longitud, err = ConsuLatLongInDb(db.DBConn, imei)
+			if err != nil {
+				fmt.Printf("Error al consultar el último registro en la base de datos: %v\n", err)
+				return 0, 0
+			}
+		}
+		return latitud, longitud
 	}
 
 	// Unir las partes de la latitud y longitud
 	ubicacion := partes[7] + "," + partes[8] + "," + partes[9] + "," + partes[10]
 
-	if ubicacion == "" {
-		return 0, 0, fmt.Errorf("datos de latitud o longitud faltantes")
-	}
-
 	// Convertir las cadenas de latitud y longitud a float32
 	latitud, longitud, err := convertirCoordenadas(ubicacion)
 	if err != nil {
-		return 0, 0, fmt.Errorf("error al convertir las coordenadas: %v", err)
+		fmt.Printf("Error al convertir las coordenadas: %v\n", err)
+		return 0, 0
 	}
 
-	return latitud, longitud, nil
+	return latitud, longitud
 }
-func convertirCoordenadas(ubicacion string) (float32, float32, error) {
+func convertirCoordenadas(ubicacion string) (float64, float64, error) {
 	// Separar la ubicación en latitud y longitud
 	partes := strings.Split(ubicacion, ",")
 	if len(partes) < 4 {
@@ -54,24 +76,26 @@ func convertirCoordenadas(ubicacion string) (float32, float32, error) {
 	if partes[3] == "W" {
 		longitud = -longitud
 	}
-
+	fmt.Println("Latitud:", latitud, "Longitud:", longitud)
 	return latitud, longitud, nil
 }
 
-func convertirCoordenada(coordStr string) (float32, error) {
+func convertirCoordenada(coordStr string) (float64, error) {
+
 	// Separar grados y minutos
 	parts := strings.Split(coordStr, ".")
 	grados, err := strconv.ParseFloat(parts[0][:len(parts[0])-2], 64)
 	if err != nil {
-		return 0, err
+		log.New(log.Writer(), "[convertirCoordenadas]", 0)
+		return 0, nil
 	}
 	minutos, err := strconv.ParseFloat(parts[0][len(parts[0])-2:]+"."+parts[1], 64)
 	if err != nil {
-		return 0, err
+		return 0, nil
 	}
 
 	// Convertir a grados decimales
-	coord := float32(grados + (minutos / 60.0))
+	coord := float64(grados + (minutos / 60.0))
 
 	return coord, nil
 }

@@ -15,8 +15,8 @@ type AvlRecord struct {
 	Id_customer    int
 	Customer       string
 	Location       string
-	Latitude       float32 `gorm:"not null"`
-	Longitude      float32 `gorm:"not null"`
+	Latitude       float64 `gorm:"not null"`
+	Longitude      float64 `gorm:"not null"`
 	Altitude       int16
 	Angle          int16
 	Satellites     int8

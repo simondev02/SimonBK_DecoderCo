@@ -1,25 +1,16 @@
 package service
 
 import (
+	views "SimonBK_DecoderCo/api/views"
 	"SimonBK_DecoderCo/db"
 	"fmt"
 )
 
-type VehicleInfo struct {
-	Plate       string
-	Imei        string
-	VehicleType string
-	IdCompany   int
-	Company     string
-	IdCustomer  int
-	Customer    string
-}
-
-func GetVehiclesInfo(imei string) (VehicleInfo, error) {
+func GetVehiclesInfo(imei string) (views.VehicleInfo, error) {
 	// Crear una conexión a la base de datos
 	db, err := db.ConnectDirectly()
 	if err != nil {
-		return VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al conectar a la base de datos: %v", err)
+		return views.VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al conectar a la base de datos: %v", err)
 	}
 	defer db.Close()
 
@@ -40,15 +31,15 @@ func GetVehiclesInfo(imei string) (VehicleInfo, error) {
 	`
 	stmt, err := db.Prepare(query)
 	if err != nil {
-		return VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al preparar la consulta: %v", err)
+		return views.VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al preparar la consulta: %v", err)
 	}
 	defer stmt.Close()
 
 	// Ejecutar la consulta y obtener el resultado
-	var info VehicleInfo
+	var info views.VehicleInfo
 	err = stmt.QueryRow(imei).Scan(&info.Plate, &info.Imei, &info.IdCompany, &info.Company, &info.IdCustomer, &info.Customer)
 	if err != nil {
-		return VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al ejecutar la consulta: %v", err)
+		return views.VehicleInfo{}, fmt.Errorf("[GetVehiclesInfo] - error al ejecutar la consulta: %v", err)
 	}
 
 	// Devolver la información del vehículo

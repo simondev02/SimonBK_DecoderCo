@@ -20,7 +20,7 @@ var EventosCoban = map[string]string{
 	"footbrake alarm":  "Freno de pie",
 	"T":                "Temperatura",
 	"oil":              "Combustible",
-	"collision alarm":  "C---olisión",
+	"collision alarm":  "Colisión",
 	"DTC P0001":        "Código de problema de diagnóstico: P0001",
 	"service":          "Notificación de mantenimiento del vehículo",
 }

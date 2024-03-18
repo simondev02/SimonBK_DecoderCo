@@ -27,13 +27,10 @@ func InsertarEnRedis(client *redis.Client, record views.AvlRecord) error {
 		return fmt.Errorf("error al insertar en Redis: %v", err)
 	}
 
-	// Insertar el JSON en el canal de Redis 'avl_service'
-	_, err = client.XAdd(ctx, &redis.XAddArgs{
-		Stream: "avl_service",
-		Values: map[string]interface{}{"event": string(jsonRecord)},
-	}).Result()
+	// Publicar el JSON en el canal de Redis 'avl_service'
+	_, err = client.Publish(ctx, "avl_service", string(jsonRecord)).Result()
 	if err != nil {
-		return fmt.Errorf("error al insertar en Redis: %v", err)
+		return fmt.Errorf("error al publicar en Redis: %v", err)
 	}
 
 	return nil

@@ -95,6 +95,7 @@ func ParsearTrama(client *redis.Client, trama string) error {
 	// Asignar el valor de Ignition a AnalogInput1
 	properties := views.Properties{
 		Ignition: ignition,
+		Speed:    int(velocidad),
 	}
 
 	propertiesJSON, err := json.Marshal(properties)

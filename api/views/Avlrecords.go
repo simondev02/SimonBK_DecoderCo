@@ -7,6 +7,8 @@ import (
 type AvlRecord struct {
 	Plate          string `gorm:"type:varchar(10);not null"`
 	Imei           string `gorm:"type:varchar(20);not null"`
+	FkManufacturer int
+	Manufacturer   string
 	Vehicle_type   int
 	Ip             string
 	TimeStampEvent time.Time

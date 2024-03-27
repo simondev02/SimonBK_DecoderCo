@@ -65,6 +65,8 @@ func ParsearTrama(client *redis.Client, trama string) error {
 	tramaCoban := views.AvlRecord{
 		Plate:          info.Plate,
 		Imei:           imei,
+		FkManufacturer: info.FkManufacturer,
+		Manufacturer:   info.Manufacturer,
 		Event:          evento,
 		Id_company:     info.IdCompany,
 		Company:        info.Company,
